@@ -23,14 +23,14 @@ jobs:
           eval $(minikube docker-env)
           docker build -t localhost:5000/nginx-minikube:latest ./nginx
 
-      # - name: Push to Local Registry
-      #   run: |
-      #     docker tag localhost:5000/nginx-minikube:latest localhost:5000/nginx-minikube:latest
-      #     docker push localhost:5000/nginx-minikube:latest
+      - name: Push to Local Registry
+        run: |
+          docker tag localhost:5000/nginx-minikube:latest localhost:5000/nginx-minikube:latest
+          docker push localhost:5000/nginx-minikube:latest
 
       - name: Deploy to Minikube with Helm
         run: |
-          helm upgrade --install nginx-minikube ./helm-chart --namespace default
+          helm upgrade --install nginx-app ./helm-chart --namespace default
 
       - name: Apply ArgoCD App
         run: kubectl apply -f argocd/app.yaml
