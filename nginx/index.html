@@ -1,0 +1,113 @@
+<html>
+    <head>
+        <style>
+            body {
+                background: radial-gradient(#2654bf, #182e60);
+                place-items: center;
+                height: 100vh;
+                width: 100%;
+                display: grid;
+            }
+            
+            h1 {
+                color: #00ffff;
+                position: relative;
+                font-size: 150px;
+                font-family: "Poppins", sans-serif;
+                background-image: radial-gradient( #d5f6f4);
+            }
+            h1::before{
+                content: attr(data-text);
+                position: absolute;
+                top: 0em;
+                left: 0em;
+                color: #121a53;
+                z-index: -1;
+                transition: 0.2s;
+              }
+              h1:hover::before{
+                top: 0.04em;
+                left: 0.04em;
+              }
+              h1::after{
+                content: attr(data-text);
+                position: absolute;
+                color: transparent;
+                top: 0em;
+                left: 0em;
+                background-image: radial-gradient(rgba(61, 34, 236, 0.5) 0.0125em, transparent 0.0125em);
+                background-size: 8px 8px;
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-stroke: 1px #001cef;
+                transition: 0.2s;
+              }
+              h1:hover::after{
+                top: -0.04em;
+                left: -0.04em;
+              }
+            dd {
+                width: 60px;
+                height: 60px;
+                border-radius:50%;
+                position:absolute;
+                top:0; bottom:0; left:0;right:0;
+                background: radial-gradient(#9587f5, #6047ff);
+                margin:auto;
+                overflow:hidden;
+                display: grid;
+                position: relative;
+                animation: mymove 3.5s linear infinite;
+            }
+            dt {
+                width: 60px;
+                height: 60px;
+                border-radius:50%;
+                position:absolute;
+                top:0; bottom:0; left:0;right:0;
+                background: radial-gradient(#2cdcdc, #198383);
+                margin:auto;
+                overflow:hidden;
+                display: grid;
+                position: relative;
+                animation: mymove 3.7s linear infinite;
+            }
+            
+            div { 
+                width: 60px;
+                height: 60px;
+                border-radius:50%;
+                position:absolute;
+                top:0; bottom:0; left:0;right:0;
+                background: radial-gradient(#e2fffe, #6ef3e8);
+                margin:auto;
+                overflow:hidden;
+                display: grid;
+                position: relative;
+                animation: mymove 3.9s linear infinite;
+            }
+              
+            @keyframes mymove {
+                0%{
+                    transform:rotate(0deg)
+                              translate(-165px)
+                              rotate(0deg);
+                  
+                  }
+                100%{
+                    transform:rotate(360deg)
+                              translate(-165px)
+                              rotate(-360deg);
+                }
+                from {left: -200px;}
+                to {left: -200px;}
+            }
+        </style>
+    </head>
+    <body>
+        <h1 data-text="Hello Minikube!">Hello Minikube!</h1>
+        <div></div>
+        <dd></dd>
+        <dt></dt>
+    </body>
+</html>
