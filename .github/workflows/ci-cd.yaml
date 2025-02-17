@@ -23,10 +23,10 @@ jobs:
           eval $(minikube docker-env)
           docker build -t localhost:5000/nginx-minikube:latest ./nginx
 
-      - name: Push to Local Registry
-        run: |
-          docker tag localhost:5000/nginx-minikube:latest localhost:5000/nginx-minikube:latest
-          docker push localhost:5000/nginx-minikube:latest
+      # - name: Push to Local Registry
+      #   run: |
+      #     docker tag localhost:5000/nginx-minikube:latest localhost:5000/nginx-minikube:latest
+      #     docker push localhost:5000/nginx-minikube:latest
 
       - name: Deploy to Minikube with Helm
         run: |
