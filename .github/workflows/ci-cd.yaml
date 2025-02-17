@@ -30,7 +30,7 @@ jobs:
 
       - name: Deploy to Minikube with Helm
         run: |
-          helm upgrade --install nginx-minikube ./helm --namespace default
+          helm upgrade --install nginx-minikube ./helm-chart --namespace default
 
       - name: Apply ArgoCD App
         run: kubectl apply -f argocd/app.yaml

@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/GiliFaibish1999/nginx-minikube.git'
     targetRevision: HEAD
-    path: helm
+    path: helm-chart
   destination:
     server: https://kubernetes.default.svc
     namespace: default
