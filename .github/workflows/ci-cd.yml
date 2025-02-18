@@ -29,7 +29,7 @@ jobs:
           addons: ingress
 
       - name: Set up Helm CLI
-        uses: aws-actions/helm-cli@v1
+        uses: azure/setup-helm@v3
         with:
           version: latest
 
@@ -40,12 +40,12 @@ jobs:
           kind load docker-image nginx-minikube:latest
 
       - name: Deploy with Helm
-        run: |
-          helm upgrade --install nginx-release ./helm-chart/ \
+        uses: helm/kubectl-helm@v1
+        with:
+          command: upgrade --install nginx-release ./helm-chart/ \
             --set image.repository=nginx-minikube \
             --set image.tag=latest \
             --namespace default \
-            --create-namespace \
             --wait
 
       - name: Verify Deployment
