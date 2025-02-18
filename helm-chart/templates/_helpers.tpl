@@ -11,9 +11,5 @@ app: nginx-minikube
 {{- end }}
 
 {{- define "nginx-minikube.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-nginx-service-account
-{{- else }}
-{{ .Values.serviceAccount.name }}
-{{- end }}
+{{ template "nginx-minikube.fullname" . }}-service-account
 {{- end }}
