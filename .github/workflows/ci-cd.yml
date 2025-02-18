@@ -28,34 +28,38 @@ jobs:
           kubernetes-version: v1.27.0
           addons: ingress
 
-      - name: Build Docker Image
-        run: |
-          eval $(minikube docker-env)
-          docker build -t nginx-minikube:latest ./nginx/
-
       - name: Install Helm CLI
         uses: azure/setup-helm@v3
         with:
           version: latest
 
+      - name: Build Docker Image
+        run: |
+          eval $(minikube docker-env)
+          docker build -t nginx-minikube:latest ./nginx/
+
       - name: Deploy with Helm
-        uses: azure/k8s-deploy@v1
+        uses: deliverybot/helm@v1
         with:
-          action: deploy
-          manifests: |
-            ./helm-chart/
-          helmChart: ./helm-chart/
+          chart: ./helm-chart/
+          release: nginx-release
+          values: |
+            image.repository=nginx-minikube
+            image.tag=latest
           namespace: default
-          releaseName: nginx-release
-          overrideFiles: |
-            --set image.repository=nginx-minikube
-            --set image.tag=latest
-            --wait
+          wait: true
 
       - name: Verify Deployment
         run: |
           kubectl get pods
           kubectl get svc
+
+      - name: Publish Helm Chart
+        uses: stefanprodan/helm-push-action@main
+        with:
+          chart: ./helm-chart/
+          repo: gh-pages
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up ArgoCD
         uses: cloudposse/github-action-deploy-argocd@main
