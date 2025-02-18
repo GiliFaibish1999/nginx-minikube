@@ -39,23 +39,6 @@ jobs:
           helm upgrade --install nginx-release ./helm-chart/ \
             --set image.repository=nginx-minikube,image.tag=latest,resources.limits.memory=256Mi,resources.limits.cpu=200m --wait
 
-      - name: Verify Deployment
+      - name: Apply ArgoCD Application
         run: |
-          kubectl get pods
-          kubectl get svc
-
-      - name: Set up ArgoCD
-        uses: cloudposse/github-action-deploy-argocd@main
-        with:
-          cluster: https://kubernetes.default.svc
-          toolchain: helm
-          environment: production
-          namespace: default
-          application: nginx-minikube
-          github-pat: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          ref: ${{ github.ref }}
-          image: nginx-minikube
-          image-tag: latest
-          operation: deploy
-          synchronously: true
+          kubectl apply -f argocd/app.yaml
