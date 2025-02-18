@@ -1,28 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: {{ include "nginx-minikube.fullname" . }}
   labels:
-    app: nginx
+    {{- include "nginx-minikube.labels" . | nindent 4 }}
 spec:
-  replicas: 2
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: nginx
+      {{- include "nginx-minikube.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: nginx
+        {{- include "nginx-minikube.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: nginx
-          image: nginx-minikube:latest  # Image built locally and used in Minikube
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - containerPort: 80
           resources:
-            limits:
-              cpu: "2"         # CPU limit: 2 vCPUs
-              memory: "256Mi"  # Memory limit: 256MB
-            requests:
-              cpu: "1"         # Minimum CPU request: 1 vCPU
-              memory: "128Mi"  # Minimum Memory request: 128MB
+            {{- toYaml .Values.resources | nindent 12 }}

@@ -1,18 +1,28 @@
+{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: nginx-ingress
+  name: {{ include "nginx-minikube.fullname" . }}
+  labels:
+    {{- include "nginx-minikube.labels" . | nindent 4 }}
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Fake HTTPS
+    {{- range $key, $value := .Values.ingress.annotations }}
+      {{ $key }}: {{ $value | quote }}
+    {{- end }}
 spec:
   rules:
-    - host: nginx.local
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host }}
       http:
         paths:
-          - path: /
-            pathType: Prefix
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
             backend:
               service:
-                name: nginx-service
+                name: {{ include "nginx-minikube.fullname" $ }}
                 port:
                   number: 80
+          {{- end }}
+    {{- end }}
+{{- end }}
