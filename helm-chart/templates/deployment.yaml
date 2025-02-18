@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-app
+  name: nginx
   labels:
-    app: nginx-app
+    app: nginx
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: nginx-app
+      app: nginx
   template:
     metadata:
       labels:
-        app: nginx-app
+        app: nginx
     spec:
       containers:
         - name: nginx
-          image: localhost:5000/nginx-minikube:latest  # Minikube local registry
+          image: nginx-minikube:latest  # Image built locally and used in Minikube
           ports:
             - containerPort: 80
           resources:
             limits:
-              memory: "256Mi"
-              cpu: "2"
+              cpu: "2"         # CPU limit: 2 vCPUs
+              memory: "256Mi"  # Memory limit: 256MB
             requests:
-              memory: "128Mi"
-              cpu: "0.5"
+              cpu: "1"         # Minimum CPU request: 1 vCPU
+              memory: "128Mi"  # Minimum Memory request: 128MB

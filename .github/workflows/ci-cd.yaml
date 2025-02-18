@@ -14,23 +14,91 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Start Minikube
-        run: |
-          minikube start --driver=docker
-          minikube addons enable ingress
+        id: minikube
+        uses: hiberbee/github-action-minikube@latest
+        with:
+          profile: minikube
+          driver: docker
+          addons: ingress 
+          kubernetes-version: 1.18.8
 
+      - name: Get Minikube status
+        run: |
+          minikube status
+
+      - name: Build Docker Image Inside Minikube
+        run: |
+          eval $(minikube docker-env)
+          docker build -t nginx-minikube:latest ./nginx/
+
+      - name: Verify build
+        run: |
+          docker images | grep nginx-minikube
+
+      - name: Set Mock Container Registry in Minikube
+        run: |
+          kubectl create namespace registry || true  # Create namespace if not exists
+          kubectl apply -f - <<EOF
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: registry
+            namespace: registry
+            labels:
+              app: registry
+          spec:
+            containers:
+            - name: registry
+              image: registry:2
+              ports:
+              - containerPort: 5000
+          EOF
+
+          kubectl apply -f - <<EOF 
+            apiVersion: v1
+            kind: apiVersion: v1
+            kind: Service
+            metadata:
+              name: registry
+              namespace: registry
+            spec:
+              selector:
+                app: registry
+              ports:
+              - port: 5000
+                targetPort: 5000
+          EOF
+
+      - name: Get Minikube IP
+        run: |
+          echo "MINIKUBE_IP=$(minikube ip)" >> GITHUB_ENV
+
+      - name: Tag and Push Docker Image to Mock Registry
+        run: |
+          docker tag nginx-minikube:latest ${{ env.MINIKUBE_IP }}:5000/nginx-minikube:latest
+          docker push ${{ env.MINIKUBE_IP }}:5000/nginx-minikube:latest
+      - name: Deploy to Kubernetes with Helm
+        run: |
+          helm upgrade --install nginx-release ./helm-chart/ \
+            --set image.repository=${{ env.MINIKUBE_IP }}:5000/nginx-minikube \
+            --set image.tag=latest
+      - name: Verify Deployment
+        run: |
+          kubectl get pods
+          kubectl get svc
       - name: Build Docker Image
         run: |
           eval $(minikube docker-env)
-          docker build -t localhost:5000/nginx-minikube:latest ./nginx
+          docker build -t nginx-minikube:latest ./nginx/
 
       # - name: Push to Local Registry
       #   run: |
       #     docker tag localhost:5000/nginx-minikube:latest localhost:5000/nginx-minikube:latest
       #     docker push localhost:5000/nginx-minikube:latest
 
-      - name: Deploy to Minikube with Helm
-        run: |
-          helm upgrade --install nginx-app ./helm-chart --namespace default
+      # - name: Deploy to Minikube with Helm
+      #   run: |
+      #     helm upgrade --install nginx-app ./helm-chart --namespace default
 
       - name: Apply ArgoCD App
         run: kubectl apply -f argocd/app.yaml
