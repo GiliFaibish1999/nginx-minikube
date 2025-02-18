@@ -16,6 +16,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Set up Minikube
         uses: medyagh/setup-minikube@latest
         with:
@@ -25,9 +28,9 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          eval $(minikube docker-env)  # Use Minikube's Docker
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
-          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          eval $(minikube -p minikube docker-env)  # Ensure Minikube environment is used
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ./nginx/
+          minikube image load ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       - name: Push Image to Minikube Fake Registry
         run: |
