@@ -1,55 +1,61 @@
-name: CI/CD Pipeline
-
+name: CD
 on:
   push:
     branches:
       - main
 
+env:
+  IMAGE_NAME: nginx-app
+  REGISTRY: localhost:5000  # Fake registry inside Minikube
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Minikube
         uses: medyagh/setup-minikube@latest
         with:
           driver: docker
           kubernetes-version: v1.27.0
-          addons: ingress, registry,  metrics-server
+          addons: registry,ingress  # Enable built-in Minikube registry
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-
-      - name: Clean Existing Ingress Resources
-        run: |
-          kubectl delete namespace ingress-nginx --ignore-not-found
-          
-      - name: Install NGINX Ingress Controller with Helm
-        run: |
-          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-          helm repo update
-          helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
-          kubectl rollout status deployment/ingress-nginx-controller -n ingress-nginx
-
-      - name: Set up Helm CLI
-        uses: azure/setup-helm@v3
-        
       - name: Build Docker Image
         run: |
-          eval $(minikube -p minikube docker-env)
-          docker build -t nginx-minikube:latest ./nginx/
-          minikube image load nginx-minikube:latest
+          eval $(minikube docker-env)  # Use Minikube's Docker
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Deploy with Helm
+      - name: Push Image to Minikube Fake Registry
         run: |
-          helm upgrade --install nginx-release ./helm-chart/ \
-            --set image.repository=nginx-minikube,image.tag=latest,resources.limits.memory=256Mi,resources.limits.cpu=200m --wait
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Apply ArgoCD Application
+      - name: Update `values.yaml` with New Image Tag
         run: |
-          kubectl apply -f argocd/app.yaml
+          cd nginx-app
+          sed -i 's|image.tag:.*|image.tag: '${{ github.sha }}'|' values.yaml 
+          git config --global user.name 'devopshint'
+          git config --global user.email 'devopshint@gmail.com'
+          git add values.yaml
+          git commit -m "Update values.yaml with new image tag"
+          git push
+
+      - name: Install Helm CLI
+        uses: azure/setup-helm@v3
+        with:
+          version: latest
+
+      - name: Deploy to Minikube using Helm
+        run: |
+          helm upgrade --install nginx-app ./nginx-app \
+            --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
+            --set image.tag=${{ github.sha }} \
+            --wait
+
+      - name: Verify Deployment
+        run: |
+          kubectl get pods
+          kubectl get svc

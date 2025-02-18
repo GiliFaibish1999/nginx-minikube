@@ -1,4 +1,4 @@
-# Default values for helm-chart.
+# Default values for nginx-app.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -7,11 +7,11 @@ replicaCount: 1
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: nginx-minikube
+  repository: nginx
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: latest
+  tag: ""
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
@@ -29,7 +29,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "nginx-service-account"
+  name: ""
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
@@ -37,7 +37,8 @@ podAnnotations: {}
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
-
+env:
+  APP_VERSION: 1.0.0
 podSecurityContext: {}
   # fsGroup: 2000
 
@@ -51,21 +52,21 @@ securityContext: {}
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 80
+  type: NodePort
+  port: 3000
+  targetPort: 3000
+  protocol: TCP
+
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
-  enabled: true
+  enabled: false
   className: ""
-  annotations: 
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: nginx.local
+    - host: chart-example.local
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -81,7 +82,6 @@ resources:
   requests:
     cpu: "100m"
     memory: "128Mi"
-
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
