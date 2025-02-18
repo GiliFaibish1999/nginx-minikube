@@ -28,8 +28,8 @@ jobs:
           kubernetes-version: v1.27.0
           addons: ingress
 
-      - name: Install Helm CLI
-        uses: azure/setup-helm@v3
+      - name: Set up Helm CLI
+        uses: aws-actions/helm-cli@v1
         with:
           version: latest
 
@@ -37,17 +37,16 @@ jobs:
         run: |
           eval $(minikube docker-env)
           docker build -t nginx-minikube:latest ./nginx/
+          kind load docker-image nginx-minikube:latest
 
       - name: Deploy with Helm
-        uses: deliverybot/helm@v1
-        with:
-          chart: ./helm-chart/
-          release: nginx-release
-          values: |
-            image.repository=nginx-minikube
-            image.tag=latest
-          namespace: default
-          wait: true
+        run: |
+          helm upgrade --install nginx-release ./helm-chart/ \
+            --set image.repository=nginx-minikube \
+            --set image.tag=latest \
+            --namespace default \
+            --create-namespace \
+            --wait
 
       - name: Verify Deployment
         run: |
