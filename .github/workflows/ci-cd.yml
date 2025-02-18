@@ -50,13 +50,25 @@ jobs:
 
       - name: Update `values.yaml` with New Image Tag
         run: |
-          cd nginx-app
-          sed -i 's|image.tag:.*|image.tag: '${{ github.sha }}'|' values.yaml 
+          cd ./nginx-app
+          # Update image tag in values.yaml
+          sed -i "s|image.tag:.*|image.tag: '${{ github.sha }}'|" values.yaml
+
+          # Check if the file actually changed
+          if git diff --quiet values.yaml; then
+            echo "No changes in values.yaml, skipping commit."
+            exit 0
+          fi
+
+          # Configure Git
           git config --global user.name 'GiliFaibish1999'
           git config --global user.email 'gilifaibishpro@gmail.com'
+
+          # Commit and push only if there are changes
           git add values.yaml
           git commit -m "Update values.yaml with new image tag"
           git push
+
 
       - name: Install Helm CLI
         uses: azure/setup-helm@v3
