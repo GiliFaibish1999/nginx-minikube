@@ -54,12 +54,12 @@ jobs:
           kubectl get pods
           kubectl get svc
 
-      - name: Publish Helm Chart
-        uses: stefanprodan/helm-push-action@main
-        with:
-          chart: ./helm-chart/
-          repo: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Publish Helm Chart
+      #   uses: stefanprodan/helm-push-action@main
+      #   with:
+      #     chart: ./helm-chart/
+      #     repo: gh-pages
+      #     token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up ArgoCD
         uses: cloudposse/github-action-deploy-argocd@main
