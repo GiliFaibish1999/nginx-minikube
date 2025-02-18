@@ -28,11 +28,17 @@ jobs:
           eval $(minikube docker-env)
           docker build -t nginx-minikube:latest ./nginx/
 
+      - name: Install Helm CLI
+        uses: azure/setup-helm@v3
+        with:
+          version: latest
+          
       - name: Deploy with Helm
         run: |
           helm upgrade --install nginx-release ./helm-chart/ \
             --set image.repository=nginx-minikube \
-            --set image.tag=latest
+            --set image.tag=latest \
+            --wait
 
       - name: Verify Deployment
         run: |
