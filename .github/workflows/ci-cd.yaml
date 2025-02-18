@@ -29,9 +29,15 @@ jobs:
           eval $(minikube docker-env)
           docker build -t nginx-minikube:latest ./nginx/
 
-      - name: Verify build
+      - name: Verify Image Build (Improved)
         run: |
-          docker images --all | grep nginx-minikube
+          IMAGE_EXISTS=$(docker images -q nginx-minikube:latest)
+          if [[ -z "$IMAGE_EXISTS" ]]; then
+            echo "ERROR: Docker image 'nginx-minikube' was not built!"
+            exit 1
+          else
+            echo "Docker image 'nginx-minikube' successfully built!"
+          fi
 
       - name: Set Mock Container Registry in Minikube
         run: |
