@@ -26,22 +26,34 @@ jobs:
           kubernetes-version: v1.27.0
           addons: registry,ingress  # Enable built-in Minikube registry
 
+      - name: Wait for Minikube Registry to Start
+        run: |
+          sleep 10  # Give Minikube registry time to initialize
+          kubectl get pods -n kube-system | grep registry
+
+      - name: Configure Minikube Docker
+        run: |
+          eval $(minikube -p minikube docker-env) # Ensure Minikube environment is used
+
       - name: Build Docker Image
         run: |
-          eval $(minikube -p minikube docker-env)  # Ensure Minikube environment is used
           docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ./nginx/
           minikube image load ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Push Image to Minikube Fake Registry
+      - name: Load Image into Minikube
         run: |
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          minikube image load ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Verify Image is Available in Minikube
+        run: |
+          minikube image list | grep ${{ env.IMAGE_NAME }}
 
       - name: Update `values.yaml` with New Image Tag
         run: |
           cd nginx-app
           sed -i 's|image.tag:.*|image.tag: '${{ github.sha }}'|' values.yaml 
-          git config --global user.name 'devopshint'
-          git config --global user.email 'devopshint@gmail.com'
+          git config --global user.name 'GiliFaibish1999'
+          git config --global user.email 'gilifaibishpro@gmail.com'
           git add values.yaml
           git commit -m "Update values.yaml with new image tag"
           git push
