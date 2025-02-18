@@ -20,13 +20,18 @@ jobs:
         with:
           driver: docker
           kubernetes-version: v1.27.0
-          addons: ingress, registry
+          addons: ingress, registry,  metrics-server
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
 
       - name: Set up Helm CLI
         uses: azure/setup-helm@v3
+
+      - name: Install NGINX Ingress Controller
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+          kubectl rollout status deployment/ingress-nginx-controller -n ingress-nginx
 
       - name: Build Docker Image
         run: |
