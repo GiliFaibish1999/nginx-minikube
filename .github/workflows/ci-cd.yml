@@ -25,6 +25,10 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
 
+      - name: Clean Existing Ingress Resources
+        run: |
+          kubectl delete namespace ingress-nginx --ignore-not-found
+          
       - name: Install NGINX Ingress Controller with Helm
         run: |
           helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
