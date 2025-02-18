@@ -31,7 +31,7 @@ jobs:
 
       - name: Verify build
         run: |
-          docker images | grep nginx-minikube
+          docker images --all | grep nginx-minikube
 
       - name: Set Mock Container Registry in Minikube
         run: |
