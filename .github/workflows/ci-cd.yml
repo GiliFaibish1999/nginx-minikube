@@ -13,10 +13,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up Kind Cluster
-        uses: helm/kind-action@v1
-        with:
-          version: v0.20.0
+      # - name: Set up Kind Cluster
+      #   uses: helm/kind-action@v1
+      #   with:
+      #     version: v0.20.0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -26,27 +26,38 @@ jobs:
         with:
           driver: docker
           kubernetes-version: v1.27.0
-          addons: ingress
+          addons: ingress, registry
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
 
       - name: Set up Helm CLI
         uses: azure/setup-helm@v3
         with:
           version: latest
 
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.3.1
+
       - name: Build Docker Image
         run: |
-          eval $(minikube docker-env)
+          export SHELL=/bin/bash
+          eval $(minikube -p minikube docker-env)
           docker build -t nginx-minikube:latest ./nginx/
-          kind load docker-image nginx-minikube:latest
+          echo -n "verifying images:"
+          docker images  
+          minikube image load nginx-minikube:latest
 
       - name: Deploy with Helm
-        uses: helm/kubectl-helm@v1
+        uses: deliverybot/helm@v1
         with:
-          command: upgrade --install nginx-release ./helm-chart/ \
-            --set image.repository=nginx-minikube \
-            --set image.tag=latest \
-            --namespace default \
-            --wait
+          chart: ./helm-chart/
+          release: nginx-release
+          values: |
+            image.repository=nginx-minikube
+            image.tag=latest
+          namespace: default
+          wait: true
 
       - name: Verify Deployment
         run: |
