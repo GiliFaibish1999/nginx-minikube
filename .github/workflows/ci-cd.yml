@@ -28,7 +28,7 @@ jobs:
 
       - name: Wait for Minikube Registry to Start
         run: |
-          sleep 10  # Give Minikube registry time to initialize
+          sleep 5  # Give Minikube registry time to initialize
           kubectl get pods -n kube-system | grep registry
 
       - name: Configure Minikube Docker
@@ -69,7 +69,6 @@ jobs:
           git commit -m "Update values.yaml with new image tag"
           git push
 
-
       - name: Install Helm CLI
         uses: azure/setup-helm@v3
         with:
@@ -80,6 +79,7 @@ jobs:
           helm upgrade --install nginx-app ./nginx-app \
             --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
             --set image.tag=${{ github.sha }} \
+            --set image.pullPolicy=IfNotPresent \
             --wait
 
       - name: Verify Deployment
