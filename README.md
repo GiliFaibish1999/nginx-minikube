@@ -69,3 +69,6 @@ This project uses **GitHub Actions** to automate the deployment process. The pip
 
 ---
 
+## 💠 Service 
+A deployment of this service should host the following HTML page on the server:
+![HTML Page](./docs/html_page.gif)  
