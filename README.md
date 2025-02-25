@@ -17,7 +17,7 @@ The workflow performs the following steps:
 
 ## 📜 Architecture
 
-![Kubernetes Deployment Diagram](./docs/architecture_diagram.png)  
+![Kubernetes Deployment Diagram](./docs/architecture_diagram.gif)  
 
 The system consists of:  
 - **Minikube**: A lightweight Kubernetes cluster for local development  
